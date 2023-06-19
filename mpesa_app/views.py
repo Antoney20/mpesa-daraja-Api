@@ -8,6 +8,7 @@ import requests
 from django.http import HttpResponse, JsonResponse
 from requests.auth import HTTPBasicAuth
 from . credentials import MpesaAccessToken, LipanaMpesaPassword
+from .models import MpesaPayment
 import json
 
 
