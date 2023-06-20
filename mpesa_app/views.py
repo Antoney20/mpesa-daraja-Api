@@ -1,6 +1,7 @@
 from django.shortcuts import render
 
 from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.csrf import requires_csrf_token
 
 # Create your views here.
 from django.http import HttpResponse
@@ -11,24 +12,32 @@ from . credentials import MpesaAccessToken, LipanaMpesaPassword
 from .models import MpesaPayment
 import json
 
-from django.contrib.auth.models import User
+from django.contrib.auth import logout
+from django.shortcuts import redirect
 
+from django.contrib.auth.models import User
 
 def register(request):
     if request.method == 'POST':
         username = request.POST['username']
         password = request.POST['password']
         User.objects.create_user(username=username, password=password)
-        return render(request, 'registration/success.html')
-    return render(request, 'registration/register.html')
+        return render(request, 'mpesa_app/index.html')
+    return render(request, 'mpesa_app/register.html'
+                  )
+def index(request):
+    return render(request, 'mpesa_app/index.html')
 
 def login(request):
-    # Logic for handling login
-    return render(request, 'registration/login.html')
+    return render(request, 'mpesa_app/login.html')
+
+def logout_view(request):
+    logout(request)
+    return redirect('login')
 
 def forgot_password(request):
     # Logic for handling password reset
-    return render(request, 'registration/forgot_password.html')
+    return render(request, 'mpesa_app/forgot_password.html')
 
 
 def getAccessToken(request):

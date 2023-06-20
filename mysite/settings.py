@@ -27,6 +27,13 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['*','127.0.0.1', 'localhost']
 
+# settings.py
+
+CORS_ORIGIN_WHITELIST = [
+    'https://6610-41-90-249-79.ngrok-free.app',
+   
+]
+
 
 # Application definition
 
@@ -122,3 +129,8 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+LOGIN_URL='login'
+LOGOUT_REDIRECT_URL = 'login'
+LOGIN_REDIRECT_URL='dashboard'
