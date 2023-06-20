@@ -11,6 +11,25 @@ from . credentials import MpesaAccessToken, LipanaMpesaPassword
 from .models import MpesaPayment
 import json
 
+from django.contrib.auth.models import User
+
+
+def register(request):
+    if request.method == 'POST':
+        username = request.POST['username']
+        password = request.POST['password']
+        User.objects.create_user(username=username, password=password)
+        return render(request, 'registration/success.html')
+    return render(request, 'registration/register.html')
+
+def login(request):
+    # Logic for handling login
+    return render(request, 'registration/login.html')
+
+def forgot_password(request):
+    # Logic for handling password reset
+    return render(request, 'registration/forgot_password.html')
+
 
 def getAccessToken(request):
     consumer_key = 'jZZ1Izq3fr2ZB4jg0Kv6GAXy41G7d4ZG'
