@@ -13,8 +13,8 @@ import json
 
 
 def getAccessToken(request):
-    consumer_key = 'yGnhaJI3xKFqwu0Rf2H3MUAwzvgx7yMc'
-    consumer_secret = '1TJy8mF1Rgp3W2On'
+    consumer_key = 'jZZ1Izq3fr2ZB4jg0Kv6GAXy41G7d4ZG'
+    consumer_secret = 'lghIvsY5Fkz7zXl3'
     api_URL = 'https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials'
 
     r = requests.get(api_URL, auth=HTTPBasicAuth(consumer_key, consumer_secret))
@@ -26,7 +26,7 @@ def getAccessToken(request):
 def lipa_na_mpesa_online(request):
     access_token = MpesaAccessToken.validated_mpesa_access_token
     api_url = "https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest"
-    headers = {"Authorization": "Bearer %s" % access_token}
+    headers = {'Authorization': f'Bearer {access_token}', 'Content-Type': 'application/json'}
     request = {
         "BusinessShortCode": LipanaMpesaPassword.Business_short_code,
         "Password": LipanaMpesaPassword.decode_password,
@@ -41,17 +41,7 @@ def lipa_na_mpesa_online(request):
         "TransactionDesc": "Testing stk push"
     }
     response = requests.post(api_url, json=request, headers=headers)
-    if response.status_code == 200:
-        response_data = response.json()
-        print(response_data)
-    # Process the response data and check for success or failure status
-        if response_data.get("ResponseCode") == "0":
-            return HttpResponse("STK push initiated successfully")
-        else:
-            return HttpResponse("STK push failed")
-    else:
-        print(response)
-        return HttpResponse("Failed to connect to STK push API")
+    return HttpResponse('success')
 
 
 
