@@ -22,6 +22,7 @@ class LipanaMpesaPassword:
     lipa_time = datetime.now().strftime('%Y%m%d%H%M%S')
     # get the credentials from the test credentials 
     Business_short_code = "174379"
+    Test_c2b_shortcode = "600984"
     passkey = 'bfb279f9aa9bdbcf158e97dd71a467cd2e0c893059b10f78e6b72ada1ed2c919'
 
     data_to_encode = Business_short_code + passkey + lipa_time

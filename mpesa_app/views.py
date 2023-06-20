@@ -50,10 +50,10 @@ def register_urls(request):
     access_token = MpesaAccessToken.validated_mpesa_access_token
     api_url = "https://sandbox.safaricom.co.ke/mpesa/c2b/v1/registerurl"
     headers = {"Authorization": "Bearer %s" % access_token}
-    options = {"ShortCode": LipanaMpesaPassword.Business_short_code,
+    options = {"ShortCode": LipanaMpesaPassword.Test_c2b_shortcode,
                "ResponseType": "Completed",
-               "ConfirmationURL": "https://mydomain.com/confirmation",
-               "ValidationURL": "https://mydomain.com/validation"}
+                "ConfirmationURL": "https://6610-41-90-249-79.ngrok-free.app/api/v1/c2b/confirmation",
+               "ValidationURL": "https://6610-41-90-249-79.ngrok-free.app/api/v1/c2b/validation"}
     response = requests.post(api_url, json=options, headers=headers)
     return HttpResponse(response.text)
 @csrf_exempt
