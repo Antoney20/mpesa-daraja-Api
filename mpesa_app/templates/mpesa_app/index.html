@@ -98,11 +98,64 @@
             </nav>
     
             <!-- Main Container -->
-            <main role="main" class="col-md-10 ml-sm-auto col-lg-10 px-4" style="background-image: url('/static/mpesa_app/img/Antony.png'); background-repeat: no-repeat; background-size: contain;">
+            <main role="main" class="col-md-10 ml-sm-auto col-lg-10 px-4" style="background-image: url('/static/mpesa_app/img/Antony.png'); background-repeat: repeat; background-size: contain;">
                 <div class="main-container">
-                   
-                    <p></p>
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5 class="card-title">Register</h5>
+                                    <p class="card-text">register functionality.</p>
+                                    <a href="{% url 'register' %}" class="btn btn-primary">Register</a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5 class="card-title">Pay</h5>
+                                    <p class="card-text">functionality.</p>
+                                    <a href="{% url 'lipa_na_mpesa_form' %}" class="btn btn-primary">Pay</a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5 class="card-title">Reverse</h5>
+                                    <p class="card-text">Reverse functionality.</p>
+                                    <a href="#" class="btn btn-primary">Reverse</a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-4">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5 class="card-title">Business</h5>
+                                    <p class="card-text">text</p>
+                                    <a href="#" class="btn btn-primary">Business </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
+                <div class="col-sm-6 mb-4 " style="margin:auto;">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">My Activities</h5>
+                            <p class="card-text">My activities.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-8 mb-4"style="margin:auto;">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Account Balance</h5>
+                            <p class="card-text">Some text about the account balance.</p>
+                        </div>
+                    </div>
+                </div>
+                
             </main>
             
         </div>
