@@ -31,6 +31,7 @@ def index(request):
 def login(request):
     return render(request, 'mpesa_app/login.html')
 
+
 def logout_view(request):
     logout(request)
     return redirect('login')
@@ -72,6 +73,39 @@ def lipa_na_mpesa_online(request):
     response = requests.post(api_url, json=request, headers=headers)
     return HttpResponse('success')
 
+import requests
+from requests.auth import HTTPBasicAuth
+
+def payment_request(request):
+    access_token = MpesaAccessToken.validated_mpesa_access_token
+    api_url = 'https://sandbox.safaricom.co.ke/mpesa/b2c/v1/paymentrequest'
+
+    headers = {
+        'Authorization': f'Bearer {access_token}','Content-Type': 'application/json'}
+
+    request_data = {
+        'InitiatorName': 'ANTONY',
+        'SecurityCredential': 'enF4l6Cv+1GEZiURsG00ycbwoNg46Q/cx6zeFbeNvkJcgGBrBku3gKcNDmJ8lk0NGqzzXMxgv8uaBSnhSRgE7s9gTEQ2sZ/spOHcGo9kJ8/XSLakxOvWjKdsvuV9T91LWWSuVGP19xOvmU15CfE2pccD24q+0KjDbJ7iCyLY09Gry0zprT/X/7TsWBsZaSMk3uc3KE91a8tahueOfYiSAKjYp7yUnaYPOvMriq03oSYz58Bnh+eWK9BU0CRCH5IrE4ZqNHYR6wsX+CXl+NAmdfzcIgfE1IfAf0C+YKLiZ4flI+FZbcuSWcP8EkfIIHWNrsLmGyYijt3456y3DSnMeA==',
+        'CommandID': 'SalaryPayment',
+        'Amount': 1,
+        'PartyA': 600983,
+        'PartyB': 254792193714,
+        'Remarks': 'salary payment',
+        'QueueTimeOutURL': 'YOUR_QUEUE_TIMEOUT_URL',
+        'ResultURL': 'YOUR_RESULT_URL',
+        'Occasion': 'YOUR_OCCASION'
+    }
+
+    response = requests.post(api_url, json=request_data, headers=headers)
+
+    if response.status_code == 200:
+        # Payment request was successful
+        response_data = response.json()
+        transaction_id = response_data['ConversationID']
+        return transaction_id
+    else:
+        # Payment request failed
+        return HttpResponse(response.text)
 
 
 @csrf_exempt
@@ -115,4 +149,4 @@ def confirmation(request):
         "ResultCode": 0,
         "ResultDesc": "Accepted"
     }
-    return JsonResponse(dict(context))
+    return HttpResponse(response.text)
