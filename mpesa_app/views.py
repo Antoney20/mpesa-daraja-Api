@@ -36,9 +36,10 @@ def logout_view(request):
     return redirect('login')
 
 def forgot_password(request):
-    # Logic for handling password reset
+  
     return render(request, 'mpesa_app/forgot_password.html')
-
+def lipaNaMpesaForm(request):
+    return render(request, 'mpesa_app/lipa_na_mpesa_form.html')
 
 def getAccessToken(request):
     consumer_key = 'jZZ1Izq3fr2ZB4jg0Kv6GAXy41G7d4ZG'
