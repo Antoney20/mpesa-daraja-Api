@@ -18,10 +18,13 @@ urlpatterns = [
     
     
     path('c2b/register', views.register_urls, name="register_mpesa_validation"),
+    
+    path('c2b/transaction_status', views.transaction_status, name="transaction_status"),
     path('c2b/confirmation', views.confirmation, name="confirmation"),
     path('c2b/validation', views.validation, name="validation"),
     path('c2b/callback', views.call_back, name="call_back"),
     path('c2b/payment', views.payment_request, name="payment_request"),
+    path('c2b/qr_code', views.generate_qr_code, name="generate_qr_code"),
     
     path('c2b/makepayment', views.register_urls, name="initiate_payment"),
 ]

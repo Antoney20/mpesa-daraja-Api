@@ -53,6 +53,7 @@ def getAccessToken(request):
 
     return HttpResponse(validated_mpesa_access_token)
 
+# Lipa na mpesa.  c2b
 def lipa_na_mpesa_online(request):
     access_token = MpesaAccessToken.validated_mpesa_access_token
     api_url = "https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest"
@@ -63,7 +64,7 @@ def lipa_na_mpesa_online(request):
         "Timestamp": LipanaMpesaPassword.lipa_time,
         "TransactionType": "CustomerPayBillOnline",
         "Amount": 1,
-        "PartyA": 254792193714,  # replace with your phone number to get stk push
+        "PartyA": 254792193714,  
         "PartyB": LipanaMpesaPassword.Business_short_code,
         "PhoneNumber": 254792193714,  # replace with your phone number to get stk push
         "CallBackURL": "https://sandbox.safaricom.co.ke/mpesa/",
@@ -73,9 +74,108 @@ def lipa_na_mpesa_online(request):
     response = requests.post(api_url, json=request, headers=headers)
     return HttpResponse('success')
 
-import requests
-from requests.auth import HTTPBasicAuth
+#Payment online. Paybill.
+def paybill_online(request):
+    access_token = MpesaAccessToken.validated_mpesa_access_token
+    api_url = "https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest"
+    headers = {'Authorization': f'Bearer {access_token}', 'Content-Type': 'application/json'}
+    request = {
+        "BusinessShortCode": 174379,
+        "Password": "MTc0Mzc5YmZiMjc5ZjlhYTliZGJjZjE1OGU5N2RkNzFhNDY3Y2QyZTBjODkzMDU5YjEwZjc4ZTZiNzJhZGExZWQyYzkxOTIwMTYwMjE2MTY1NjI3", 
+        "Timestamp": LipanaMpesaPassword.lipa_time,
+        "TransactionType": "CustomerPayBillOnline",
+        "Amount": 1,
+        "PartyA": 254748181420,  
+        "PartyB": 174379,
+        "PhoneNumber": 254792193714,  # replace with your phone number to get stk push
+        "CallBackURL": "",
+        "AccountReference": "Antony-Test",
+        "TransactionDesc": "Testing paybill - stk push"
+    }
+    response = requests.post(api_url, json=request, headers=headers)
+    return HttpResponse('success')
 
+
+def transaction_status(request):
+    if request.method == 'POST':
+        # Process the transaction status update
+        # Retrieve the relevant data from the request
+        transaction_id = request.POST.get('TransactionID')
+        transaction_status = request.POST.get('TransactionStatus')
+        # Print the transaction details to the console
+        print(f"Transaction ID: {transaction_id}")
+        print(f"Transaction Status: {transaction_status}")
+    return HttpResponse(status=200)
+
+
+@csrf_exempt
+def register_urls(request):
+    access_token = MpesaAccessToken.validated_mpesa_access_token
+    api_url = "https://sandbox.safaricom.co.ke/mpesa/c2b/v1/registerurl"
+    headers = {"Authorization": "Bearer %s" % access_token}
+    options = {"ShortCode": LipanaMpesaPassword.Test_c2b_shortcode,
+               "ResponseType": "Cancelled/Completed",
+                "ConfirmationURL": "https://6610-41-90-249-79.ngrok-free.app/api/v1/c2b/confirmation",
+               "ValidationURL": "https://6610-41-90-249-79.ngrok-free.app/api/v1/c2b/validation"}
+    response = requests.post(api_url, json=options, headers=headers)
+    return HttpResponse(response.text)
+@csrf_exempt
+def call_back(request):
+    pass
+@csrf_exempt
+def validation(request):
+    context = {
+        "ResultCode": 0,
+        "ResultDesc": "Accepted"
+    }
+    return JsonResponse(dict(context))
+@csrf_exempt
+def confirmation(request):
+    mpesa_body =request.body.decode('utf-8')
+    print(mpesa_body)
+    mpesa_payment = json.loads(mpesa_body)
+    payment = MpesaPayment(
+        first_name=mpesa_payment['FirstName'],
+        last_name=mpesa_payment['LastName'],
+        middle_name=mpesa_payment['MiddleName'],
+        description=mpesa_payment['TransID'],
+        phone_number=mpesa_payment['MSISDN'],
+        amount=mpesa_payment['TransAmount'],
+        reference=mpesa_payment['BillRefNumber'],
+        organization_balance=mpesa_payment['OrgAccountBalance'],
+        type=mpesa_payment['TransactionType'],
+    )
+    payment.save()
+    context = {
+        "ResultCode": 0,
+        "ResultDesc": "Accepted"
+    }
+    return HttpResponse(response.text)
+
+#generating QR code.
+def generate_qr_code(request):
+    access_token = MpesaAccessToken.validated_mpesa_access_token
+    api_url = 'https://sandbox.safaricom.co.ke/mpesa/qrcode/v1/generate'
+    headers = {"Authorization": "Bearer %s" % access_token}
+
+    request_data = {
+        'MerchantName': 'TEST SUPERMARKET',
+        'RefNo': 'Payment Test',
+        'Amount': 1,
+        'TrxCode': 'BG',  #Transaction Type. The supported types are:
+        #BG: Pay Merchant (Buy Goods).
+        #WA: Withdraw Cash at Agent Till....
+         #PB: Paybill or Business number.
+        'CPI': '254792193714', #Credit Party Identifier. Can be a Mobile Number, Business Number, Agent Till, Paybill or Business number
+        'Size': '300' #Size of the QR code image in pixels
+    }
+
+    response = requests.post(api_url, json=request_data, headers=headers)
+
+    return HttpResponse(response.text)
+
+    
+    # payment request
 def payment_request(request):
     access_token = MpesaAccessToken.validated_mpesa_access_token
     api_url = 'https://sandbox.safaricom.co.ke/mpesa/b2c/v1/paymentrequest'
@@ -106,47 +206,3 @@ def payment_request(request):
     else:
         # Payment request failed
         return HttpResponse(response.text)
-
-
-@csrf_exempt
-def register_urls(request):
-    access_token = MpesaAccessToken.validated_mpesa_access_token
-    api_url = "https://sandbox.safaricom.co.ke/mpesa/c2b/v1/registerurl"
-    headers = {"Authorization": "Bearer %s" % access_token}
-    options = {"ShortCode": LipanaMpesaPassword.Test_c2b_shortcode,
-               "ResponseType": "Completed",
-                "ConfirmationURL": "https://6610-41-90-249-79.ngrok-free.app/api/v1/c2b/confirmation",
-               "ValidationURL": "https://6610-41-90-249-79.ngrok-free.app/api/v1/c2b/validation"}
-    response = requests.post(api_url, json=options, headers=headers)
-    return HttpResponse(response.text)
-@csrf_exempt
-def call_back(request):
-    pass
-@csrf_exempt
-def validation(request):
-    context = {
-        "ResultCode": 0,
-        "ResultDesc": "Accepted"
-    }
-    return JsonResponse(dict(context))
-@csrf_exempt
-def confirmation(request):
-    mpesa_body =request.body.decode('utf-8')
-    mpesa_payment = json.loads(mpesa_body)
-    payment = MpesaPayment(
-        first_name=mpesa_payment['FirstName'],
-        last_name=mpesa_payment['LastName'],
-        middle_name=mpesa_payment['MiddleName'],
-        description=mpesa_payment['TransID'],
-        phone_number=mpesa_payment['MSISDN'],
-        amount=mpesa_payment['TransAmount'],
-        reference=mpesa_payment['BillRefNumber'],
-        organization_balance=mpesa_payment['OrgAccountBalance'],
-        type=mpesa_payment['TransactionType'],
-    )
-    payment.save()
-    context = {
-        "ResultCode": 0,
-        "ResultDesc": "Accepted"
-    }
-    return HttpResponse(response.text)
