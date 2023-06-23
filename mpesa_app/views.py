@@ -72,9 +72,9 @@ def lipa_na_mpesa_online(request):
         "TransactionDesc": "Testing stk push"
     }
     response = requests.post(api_url, json=request, headers=headers)
-    return HttpResponse('success')
+    return HttpResponse(response.text)
 
-#Payment online. Paybill.
+#Payment online. Paybill. mpesa express
 def paybill_online(request):
     access_token = MpesaAccessToken.validated_mpesa_access_token
     api_url = "https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest"
@@ -85,15 +85,15 @@ def paybill_online(request):
         "Timestamp": LipanaMpesaPassword.lipa_time,
         "TransactionType": "CustomerPayBillOnline",
         "Amount": 1,
-        "PartyA": 254748181420,  
+        "PartyA": 254792193714,  
         "PartyB": 174379,
         "PhoneNumber": 254792193714,  # replace with your phone number to get stk push
-        "CallBackURL": "",
+        "CallBackURL": "https://mydomain.com/path",
         "AccountReference": "Antony-Test",
         "TransactionDesc": "Testing paybill - stk push"
     }
     response = requests.post(api_url, json=request, headers=headers)
-    return HttpResponse('success')
+    return HttpResponse(response.text)
 
 
 def transaction_status(request):

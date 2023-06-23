@@ -26,5 +26,5 @@ urlpatterns = [
     path('c2b/payment', views.payment_request, name="payment_request"),
     path('c2b/qr_code', views.generate_qr_code, name="generate_qr_code"),
     
-    path('c2b/makepayment', views.register_urls, name="initiate_payment"),
+    path('c2b/mpesa_simulate', views.paybill_online, name="paybill_online"),
 ]
