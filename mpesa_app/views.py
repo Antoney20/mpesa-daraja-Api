@@ -8,7 +8,7 @@ from django.http import HttpResponse
 import requests
 from django.http import HttpResponse, JsonResponse
 from requests.auth import HTTPBasicAuth
-from . credentials import MpesaAccessToken, LipanaMpesaPassword, MpesaPaybill,
+from . credentials import MpesaAccessToken, LipanaMpesaPassword, MpesaPaybill
 from .models import MpesaPayment
 import json
 
@@ -88,8 +88,8 @@ def paybill_online(request):
         "Amount": 1,
         "PartyA": 254792193714,  
         "PartyB": 174379,
-        "PhoneNumber": 254792193714,  # replace with your phone number to get stk push
-        "CallBackURL": "https://mydomain.com/path",
+        "PhoneNumber": 254792193714,  # replace with your phone number to get st
+        "CallBackURL": "https://bc3c-41-90-249-79.ngrok-free.app/app/v1/c2b/callback",
         "AccountReference": "Antony-Test",
         "TransactionDesc": "Payment of X"
     }
@@ -110,26 +110,47 @@ def register_urls(request):
     return HttpResponse(response.text)
 @csrf_exempt
 def call_back(request):
-    # Get the request data
-    callback_data = json.loads(request.body)
+    data = json.loads(request.body)
 
-    # Extract the necessary values from the callback data
-    merchant_request_id = callback_data['Body']['stkCallback']['MerchantRequestID']
-    checkout_request_id = callback_data['Body']['stkCallback']['CheckoutRequestID']
-    result_code = callback_data['Body']['stkCallback']['ResultCode']
-    result_description = callback_data['Body']['stkCallback']['ResultDesc']
+    # Extract relevant information from the data
+    result_code = data['Body']['stkCallback']['ResultCode']
+    result_desc = data['Body']['stkCallback']['ResultDesc']
 
-    # Process the callback data and perform necessary actions
-    response_data = {
-        "ResponseCode": "0",
-        "ResponseDescription": "Callback processed successfully",
-        "MerchantRequestID": merchant_request_id,
-        "CheckoutRequestID": checkout_request_id,
-        "ResultCode": result_code,
-        "ResultDesc": result_description
-    }
+    # Check if the transaction was successful or unsuccessful
+    if result_code == 0:
+        # Successful transaction
+        response_body = {
+            "Body": {
+                "stkCallback": {
+                    "MerchantRequestID": data['Body']['stkCallback']['MerchantRequestID'],
+                    "CheckoutRequestID": data['Body']['stkCallback']['CheckoutRequestID'],
+                    "ResultCode": result_code,
+                    "ResultDesc": result_desc,
+                    "CallbackMetadata": {
+                        "Item": [
+                            {"Name": "", "Value": 1},
+                            {"Name": "", "Value": ""}
+                        ]
+                    }
+                }
+            }
+        }
+    else:
+        # Unsuccessful transaction
+        response_body = {
+            "Body": {
+                "stkCallback": {
+                    "MerchantRequestID": data['Body']['stkCallback']['MerchantRequestID'],
+                    "CheckoutRequestID": data['Body']['stkCallback']['CheckoutRequestID'],
+                    "ResultCode": result_code,
+                    "ResultDesc": result_desc
+                }
+            }
+        }
 
-    return JsonResponse(response_data)
+    # Send the response to M-Pesa API
+    return HttpResponse(json.dumps(response_body), content_type='application/json')
+
 @csrf_exempt
 def validation(request):
     context = {
@@ -183,7 +204,7 @@ def generate_qr_code(request):
     return HttpResponse(response.text)
 
     
-    # payment request
+    # payment request /payment
 def payment_request(request):
     access_token = MpesaAccessToken.validated_mpesa_access_token
     api_url = 'https://sandbox.safaricom.co.ke/mpesa/b2c/v1/paymentrequest'
@@ -199,9 +220,9 @@ def payment_request(request):
         'PartyA': 600983,
         'PartyB': 254792193714,
         'Remarks': 'salary payment',
-        'QueueTimeOutURL': 'YOUR_QUEUE_TIMEOUT_URL',
-        'ResultURL': 'YOUR_RESULT_URL',
-        'Occasion': 'YOUR_OCCASION'
+        'QueueTimeOutURL': 'https://mydomain.com/b2c/queue',
+        'ResultURL': 'https://mydomain.com/b2c/result',
+        'Occasion': 'Hey antony. tihs is your payment'
     }
 
     response = requests.post(api_url, json=request_data, headers=headers)
@@ -210,7 +231,7 @@ def payment_request(request):
         # Payment request was successful
         response_data = response.json()
         transaction_id = response_data['ConversationID']
-        return transaction_id
+        return HttpResponse(response.text)
     else:
         # Payment request failed
         return HttpResponse(response.text)
