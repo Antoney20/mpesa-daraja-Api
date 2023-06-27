@@ -19,7 +19,7 @@ urlpatterns = [
     
     path('c2b/register', views.register_urls, name="register_mpesa_validation"),
     
-    path('c2b/transaction_status', views.transaction_status, name="transaction_status"),
+    #path('c2b/transaction_status', views.transaction_status, name="transaction_status"),
     path('c2b/confirmation', views.confirmation, name="confirmation"),
     path('c2b/validation', views.validation, name="validation"),
     path('c2b/callback', views.call_back, name="call_back"),

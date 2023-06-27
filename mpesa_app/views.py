@@ -8,7 +8,7 @@ from django.http import HttpResponse
 import requests
 from django.http import HttpResponse, JsonResponse
 from requests.auth import HTTPBasicAuth
-from . credentials import MpesaAccessToken, LipanaMpesaPassword
+from . credentials import MpesaAccessToken, LipanaMpesaPassword, MpesaPaybill,
 from .models import MpesaPayment
 import json
 
@@ -64,9 +64,9 @@ def lipa_na_mpesa_online(request):
         "Timestamp": LipanaMpesaPassword.lipa_time,
         "TransactionType": "CustomerPayBillOnline",
         "Amount": 1,
-        "PartyA": 254792193714,  
+        "PartyA": 254748181420,  
         "PartyB": LipanaMpesaPassword.Business_short_code,
-        "PhoneNumber": 254792193714,  # replace with your phone number to get stk push
+        "PhoneNumber": 254748181420,  # replace with your phone number to get stk push
         "CallBackURL": "https://sandbox.safaricom.co.ke/mpesa/",
         "AccountReference": "Antony",
         "TransactionDesc": "Testing stk push"
@@ -74,15 +74,16 @@ def lipa_na_mpesa_online(request):
     response = requests.post(api_url, json=request, headers=headers)
     return HttpResponse(response.text)
 
-#Payment online. Paybill. mpesa express
+#Payment online. Paybill. mpesa express /mpesa_simulate
 def paybill_online(request):
     access_token = MpesaAccessToken.validated_mpesa_access_token
     api_url = "https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest"
-    headers = {'Authorization': f'Bearer {access_token}', 'Content-Type': 'application/json'}
+    headers = {'Authorization': f'Bearer {access_token}', 
+               'Content-Type': 'application/json'}
     request = {
-        "BusinessShortCode": 174379,
-        "Password": "MTc0Mzc5YmZiMjc5ZjlhYTliZGJjZjE1OGU5N2RkNzFhNDY3Y2QyZTBjODkzMDU5YjEwZjc4ZTZiNzJhZGExZWQyYzkxOTIwMTYwMjE2MTY1NjI3", 
-        "Timestamp": LipanaMpesaPassword.lipa_time,
+        "BusinessShortCode": MpesaPaybill.Business_short_code,
+        "Password": MpesaPaybill.decode_password,
+        "Timestamp": MpesaPaybill.date_time,
         "TransactionType": "CustomerPayBillOnline",
         "Amount": 1,
         "PartyA": 254792193714,  
@@ -90,22 +91,10 @@ def paybill_online(request):
         "PhoneNumber": 254792193714,  # replace with your phone number to get stk push
         "CallBackURL": "https://mydomain.com/path",
         "AccountReference": "Antony-Test",
-        "TransactionDesc": "Testing paybill - stk push"
+        "TransactionDesc": "Payment of X"
     }
     response = requests.post(api_url, json=request, headers=headers)
     return HttpResponse(response.text)
-
-
-def transaction_status(request):
-    if request.method == 'POST':
-        # Process the transaction status update
-        # Retrieve the relevant data from the request
-        transaction_id = request.POST.get('TransactionID')
-        transaction_status = request.POST.get('TransactionStatus')
-        # Print the transaction details to the console
-        print(f"Transaction ID: {transaction_id}")
-        print(f"Transaction Status: {transaction_status}")
-    return HttpResponse(status=200)
 
 
 @csrf_exempt
@@ -115,13 +104,32 @@ def register_urls(request):
     headers = {"Authorization": "Bearer %s" % access_token}
     options = {"ShortCode": LipanaMpesaPassword.Test_c2b_shortcode,
                "ResponseType": "Cancelled/Completed",
-                "ConfirmationURL": "https://6610-41-90-249-79.ngrok-free.app/api/v1/c2b/confirmation",
-               "ValidationURL": "https://6610-41-90-249-79.ngrok-free.app/api/v1/c2b/validation"}
+                "ConfirmationURL": "https://60b3-41-90-249-79.ngrok-free.app/api/v1/c2b/confirmation",
+               "ValidationURL": "https://60b3-41-90-249-79.ngrok-free.app/api/v1/c2b/validation"}
     response = requests.post(api_url, json=options, headers=headers)
     return HttpResponse(response.text)
 @csrf_exempt
 def call_back(request):
-    pass
+    # Get the request data
+    callback_data = json.loads(request.body)
+
+    # Extract the necessary values from the callback data
+    merchant_request_id = callback_data['Body']['stkCallback']['MerchantRequestID']
+    checkout_request_id = callback_data['Body']['stkCallback']['CheckoutRequestID']
+    result_code = callback_data['Body']['stkCallback']['ResultCode']
+    result_description = callback_data['Body']['stkCallback']['ResultDesc']
+
+    # Process the callback data and perform necessary actions
+    response_data = {
+        "ResponseCode": "0",
+        "ResponseDescription": "Callback processed successfully",
+        "MerchantRequestID": merchant_request_id,
+        "CheckoutRequestID": checkout_request_id,
+        "ResultCode": result_code,
+        "ResultDesc": result_description
+    }
+
+    return JsonResponse(response_data)
 @csrf_exempt
 def validation(request):
     context = {
@@ -206,3 +214,5 @@ def payment_request(request):
     else:
         # Payment request failed
         return HttpResponse(response.text)
+    
+    
