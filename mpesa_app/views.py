@@ -9,7 +9,7 @@ import requests
 from django.http import HttpResponse, JsonResponse
 from requests.auth import HTTPBasicAuth
 from . credentials import MpesaAccessToken, LipanaMpesaPassword, MpesaPaybill
-from .models import MpesaPayment
+from .models import MpesaPayment, MpesaCallBacks
 import json
 
 from django.contrib.auth import logout
@@ -58,7 +58,7 @@ def lipa_na_mpesa_online(request):
     access_token = MpesaAccessToken.validated_mpesa_access_token
     api_url = "https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest"
     headers = {'Authorization': f'Bearer {access_token}', 'Content-Type': 'application/json'}
-    request = {
+    stk_request = {
         "BusinessShortCode": LipanaMpesaPassword.Business_short_code,
         "Password": LipanaMpesaPassword.decode_password,
         "Timestamp": LipanaMpesaPassword.lipa_time,
@@ -67,11 +67,20 @@ def lipa_na_mpesa_online(request):
         "PartyA": 254748181420,  
         "PartyB": LipanaMpesaPassword.Business_short_code,
         "PhoneNumber": 254748181420,  # replace with your phone number to get stk push
-        "CallBackURL": "https://sandbox.safaricom.co.ke/mpesa/",
+        "CallBackURL": "https://4a7c-41-90-249-79.ngrok-free.app/app/v1/c2b/callback",
         "AccountReference": "Antony",
         "TransactionDesc": "Testing stk push"
     }
-    response = requests.post(api_url, json=request, headers=headers)
+    response = requests.post(api_url, json=stk_request, headers=headers)
+    if response.status_code == 200:
+        response_data = response.json()
+        mpesa_callback = MpesaCallBacks(
+            ip_address=request.META.get('REMOTE_ADDR'),
+            caller=request.META.get('HTTP_USER_AGENT'),
+            
+            content=json.dumps(stk_request)
+        )
+        mpesa_callback.save()
     return HttpResponse(response.text)
 
 #Payment online. Paybill. mpesa express /mpesa_simulate
@@ -89,7 +98,7 @@ def paybill_online(request):
         "PartyA": 254792193714,  
         "PartyB": 174379,
         "PhoneNumber": 254792193714,  # replace with your phone number to get st
-        "CallBackURL": "https://bc3c-41-90-249-79.ngrok-free.app/app/v1/c2b/callback",
+        "CallBackURL": "https://4a7c-41-90-249-79.ngrok-free.app/app/v1/c2b/callback",
         "AccountReference": "Antony-Test",
         "TransactionDesc": "Payment of X"
     }
@@ -104,17 +113,27 @@ def register_urls(request):
     headers = {"Authorization": "Bearer %s" % access_token}
     options = {"ShortCode": LipanaMpesaPassword.Test_c2b_shortcode,
                "ResponseType": "Cancelled/Completed",
-                "ConfirmationURL": "https://60b3-41-90-249-79.ngrok-free.app/api/v1/c2b/confirmation",
-               "ValidationURL": "https://60b3-41-90-249-79.ngrok-free.app/api/v1/c2b/validation"}
+                "ConfirmationURL": "https://4a7c-41-90-249-79.ngrok-free.app/api/v1/c2b/confirmation",
+               "ValidationURL": "https://4a7c-41-90-249-79.ngrok-free.app/api/v1/c2b/validation"}
     response = requests.post(api_url, json=options, headers=headers)
     return HttpResponse(response.text)
 @csrf_exempt
-def call_back(request):
+def mpesa_callback(request):
+    # Retrieve the notification data sent by M-Pesa API
     data = json.loads(request.body)
 
     # Extract relevant information from the data
     result_code = data['Body']['stkCallback']['ResultCode']
     result_desc = data['Body']['stkCallback']['ResultDesc']
+
+    # Save the callback results in the database
+    mpesa_callback = MpesaCallBacks(
+        ip_address=data['ip_address'],
+        caller=data['caller'],
+        conversation_id=data['conversation_id'],
+        content=json.dumps(data)
+    )
+    mpesa_callback.save()
 
     # Check if the transaction was successful or unsuccessful
     if result_code == 0:
@@ -150,6 +169,7 @@ def call_back(request):
 
     # Send the response to M-Pesa API
     return HttpResponse(json.dumps(response_body), content_type='application/json')
+
 
 @csrf_exempt
 def validation(request):

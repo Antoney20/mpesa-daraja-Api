@@ -29,7 +29,7 @@ class MpesaCallBacks(BaseModel):
         verbose_name = 'Mpesa Call Back'
         verbose_name_plural = 'Mpesa Call Backs'
 
-
+#paybill
 class MpesaPayment(BaseModel):
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     description = models.TextField()
@@ -48,7 +48,7 @@ class MpesaPayment(BaseModel):
     def __str__(self):
         return self.first_name
 
-class QRCode(models.Model):
+class QRCode(BaseModel):
     response_code = models.CharField(max_length=100)
     request_id = models.CharField(max_length=100)
     response_description = models.CharField(max_length=255)
@@ -57,7 +57,7 @@ class QRCode(models.Model):
     def __str__(self):
         return f'Response Code: {self.response_code}, Request ID: {self.request_id}'
 
-class Payment(models.Model):
+class Payment(BaseModel):
     merchant_name = models.CharField(max_length=100)
     ref_no = models.CharField(max_length=100)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
@@ -65,6 +65,9 @@ class Payment(models.Model):
     cpi = models.CharField(max_length=100)
     size = models.CharField(max_length=10)
     qr_code = models.ForeignKey(QRCode, on_delete=models.CASCADE, null=True, blank=True)
+    class Meta:
+        verbose_name = 'Payment'
+        verbose_name_plural = 'Payments'
 
     def __str__(self):
         return f'Ref No: {self.ref_no}, Amount: {self.amount}'
