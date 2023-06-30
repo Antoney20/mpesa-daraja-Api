@@ -8,10 +8,15 @@ class BaseModel(models.Model):
     class Meta:
         abstract = True
 
-class MpesaCalls(BaseModel):
+class MpesaCallsNew(BaseModel):
     ip_address = models.TextField()
     caller = models.TextField()
     conversation_id = models.TextField()
+    MerchantRequestID = models.TextField()
+    CheckoutRequestID = models.TextField()
+    ResponseCode = models.TextField()
+    ResponseDescription = models.TextField()
+    CustomerMessage = models.TextField()
     content = models.TextField()
 
     class Meta:
