@@ -17,9 +17,9 @@ from django.shortcuts import redirect
 
 from django.contrib.auth.models import User
 
-callback_url = "https://7c3d-41-90-249-79.ngrok-free.app/app/v1/c2b/callback"
-confirmation_url = "https://7c3d-41-90-249-79.ngrok-free.app/app/v1/c2b/confirmation"
-validation_url = "https://7c3d-41-90-249-79.ngrok-free.app/app/v1/c2b/validation"
+callback_url = "https://cd64-196-98-170-98.ngrok-free.app/app/v1/c2b/callback"
+confirmation_url = "https://cd64-196-98-170-98.ngrok-free.app/app/v1/c2b/confirmation"
+validation_url = "https://cd64-196-98-170-98.ngrok-free.app/app/v1/c2b/validation"
 
 def register(request):
     if request.method == 'POST':
