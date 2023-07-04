@@ -17,6 +17,10 @@ from django.shortcuts import redirect
 
 from django.contrib.auth.models import User
 
+callback_url = "https://7c3d-41-90-249-79.ngrok-free.app/app/v1/c2b/callback"
+confirmation_url = "https://7c3d-41-90-249-79.ngrok-free.app/app/v1/c2b/confirmation"
+validation_url = "https://7c3d-41-90-249-79.ngrok-free.app/app/v1/c2b/validation"
+
 def register(request):
     if request.method == 'POST':
         username = request.POST['username']
@@ -67,7 +71,7 @@ def lipa_na_mpesa_online(request):
         "PartyA": 254748181420,  
         "PartyB": LipanaMpesaPassword.Business_short_code,
         "PhoneNumber": 254748181420,  # replace with your phone number to get stk push
-        "CallBackURL": "https://4a25-105-160-47-237.ngrok-free.app/app/v1/c2b/callback",
+        "CallBackURL": callback_url,
         "AccountReference": "Antony",
         "TransactionDesc": "Testing stk push"
     }
@@ -77,31 +81,55 @@ def lipa_na_mpesa_online(request):
         response_data = response.json()
         mpesa_callbacks = MpesaCallBacks(
             ip_address=request.META.get('REMOTE_ADDR'),
-            caller=request.META.get('HTTP_USER_AGENT'),
-            
+            caller=request.META.get('HTTP_USER_AGENT'),    
             content=json.dumps(stk_request)
         )
         mpesa_callbacks.save()
     return HttpResponse(response.text)
 
+
 @csrf_exempt
 def mpesa_callback(request):
+    if request.method == 'GET':
+        try:
+            callback_data = json.loads(request.body)
+            print("********NNN*****SUCCESS")
+            print(callback_data)
+            
+            return HttpResponse(callback_data.text)
+        except Exception as e:
+            callback_data = json.loads(request.body)
+            return HttpResponse(status=500, content=str(e))
     if request.method == 'POST':
-        callback_data = json.loads(request.body)
-        mpesa_call = MpesaCallsNew(
-            ip_address=request.META.get('REMOTE_ADDR'),
-            caller=request.META.get('HTTP_USER_AGENT'),
-            MerchantRequestID=callback_data.get('MerchantRequestID'),
-            CheckoutRequestID=callback_data.get('CheckoutRequestID'),
-            ResponseCode=callback_data.get('ResponseCode'),
-            ResponseDescription=callback_data.get('ResponseDescription'),
-            CustomerMessage=callback_data.get('CustomerMessage'),
-            content=json.dumps(callback_data)
-        )
-        mpesa_call.save()
-        return HttpResponse(status=200)
+        try:
+            callback_data = json.loads(request.body)
+            
+            print("****POST*********SUCCESS")
+            print(callback_data)
+            mpesa_call = MpesaCallsNew(
+                ip_address=request.META.get('REMOTE_ADDR'),
+                caller=request.META.get('HTTP_USER_AGENT'),
+                MerchantRequestID=callback_data.get('MerchantRequestID'),
+                CheckoutRequestID=callback_data.get('CheckoutRequestID'),
+                ResponseCode=callback_data.get('ResponseCode'),
+                ResponseDescription=callback_data.get('ResponseDescription'),
+                CustomerMessage=callback_data.get('CustomerMessage'),
+                content=json.dumps(callback_data)
+            )
+            mpesa_call.save()
+            print("*************SUCCESS")
+            print(callback_data)
+            return HttpResponse(callback_data)
+        except Exception as e:
+            print("*************EXCEPTION METHOD POST")
+            callback_data = json.loads(request.body)
+            print(callback_data)
+            
+            return HttpResponse(status=500, content=str(e))
     else:
         return HttpResponse(status=405)
+
+
 
 
 #Payment online. Paybill. mpesa express /mpesa_simulate
@@ -116,10 +144,10 @@ def paybill_online(request):
         "Timestamp": MpesaPaybill.date_time,
         "TransactionType": "CustomerPayBillOnline",
         "Amount": 1,
-        "PartyA": 254792193714,  
+        "PartyA": 254748181420,  
         "PartyB": 174379,
-        "PhoneNumber": 254792193714,  # replace with your phone number to get st
-        "CallBackURL": "https://4a25-105-160-47-237.ngrok-free.app/app/v1/c2b/callback",
+        "PhoneNumber": 254748181420,  # replace with your phone number to get st
+        "CallBackURL": callback_url,
         "AccountReference": "Antony-Test",
         "TransactionDesc": "Payment of X"
     }
@@ -135,8 +163,9 @@ def register_urls(request):
     headers = {"Authorization": "Bearer %s" % access_token}
     options = {"ShortCode": LipanaMpesaPassword.Test_c2b_shortcode,
                "ResponseType": "Cancelled/Completed",
-                "ConfirmationURL": "https://2a8d-41-90-249-79.ngrok-free.app/app/v1/c2b/confirmation",
-               "ValidationURL": "https://2a8d-41-90-249-79.ngrok-free.app/app/v1/c2b/validation"}
+                "ConfirmationURL": confirmation_url,
+               "ValidationURL": validation_url
+               }
     response = requests.post(api_url, json=options, headers=headers)
     return HttpResponse(response.text)
 
