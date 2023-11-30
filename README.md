@@ -18,4 +18,7 @@ python manage.py runserver.<br>
 we can see that our website is up and running on localhost/<br>
 You have 18 unapplied migrations. now lets run command.<br>
 
+<h2>Generating Mpesa Access Token.</h2>
+in order to make an API call to Mpesa APIs, we will need to authenticate our app.<br> Safaricom provides an OAuth for generating an access token, which supports client_credentials grant type. <br>Since we will be making an HTTP request to mpesa sandbox, we need a python library to make HTTP requests.
+
 
